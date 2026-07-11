@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Docks – Test</title>
+  <style>
+    body {
+      font-family: monospace;
+      max-width: 700px;
+      margin: 40px auto;
+      background: #111;
+      color: #eee;
+      padding: 20px;
+    }
+
+    h2 {
+      color: #81c3fd;
+    }
+
+    select,
+    textarea,
+    button {
+      width: 100%;
+      margin: 8px 0;
+      font-size: 14px;
+      font-family: monospace;
+    }
+
+
+    textarea {
+      background: #1e1e1e;
+      color: #ddd;
+      border: 1px solid #444;
+      padding: 10px;
+      height: 180px;
+      resize: vertical;
+      width: 97%;
+    }
+
+    button {
+      background: #66d8fa;
+      color: #111;
+      font-weight: bold;
+      padding: 10px;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #0792ce;
+    }
+
+    pre {
+      background: #1e1e1e;
+      border: 1px solid #333;
+      padding: 14px;
+      min-height: 80px;
+      white-space: pre-wrap;
+      word-break: break-all;
+      color: #adf;
+    }
+
+    .err {
+      color: #f88;
+    }
+
+    label {
+      color: #aaa;
+      font-size: 13px;
+    }
+  </style>
+</head>
+
+<body>
+  <h2>🐳 Docks – Code Runner Test</h2>
+
+  <label>Language</label>
+  <select id="lang">
+    <option value="python">Python</option>
+    <option value="cpp">C++</option>
+  </select>
+
+  <label>Code</label>
+  <textarea id="code">print("Welcome to Docks.")</textarea>
+
+  <label>Input (stdin)</label>
+  <textarea id="input" placeholder="Enter input here (one line per input())"></textarea>
+
+  <button onclick="runCode()">▶ Run</button>
+
+  <label>Output</label>
+  <pre id="output">Output will appear here...</pre>
+
+  <script>
+    document.getElementById("lang").addEventListener("change", (e) => {
+      const samples = {
+        python: 'print("Welcome to Docks.")',
+        cpp: '#include<iostream>\nusing namespace std;\nint main(){\n  cout << "Welcome to Docks." << endl;\n  return 0;\n}'
+      };
+      document.getElementById("code").value = samples[e.target.value];
+    });
+
+    async function runCode() {
+      const language = document.getElementById("lang").value;
+      const code = document.getElementById("code").value;
+      const input = document.getElementById("input").value;  // Get input
+      const out = document.getElementById("output");
+      out.textContent = "Running...";
+      out.className = "";
+
+      try {
+        const res = await fetch("http://localhost:3000/execute", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ language, code, input })  // Send input too
+        });
+        const data = await res.json();
+        if (data.stderr) {
+          out.textContent = data.stderr;
+          out.className = "err";
+        } else {
+          out.textContent = data.stdout || "(no output)";
+        }
+      } catch (e) {
+        out.textContent = "Error: Could not reach backend.";
+        out.className = "err";
+      }
+    }
+  </script>
+</body>
+
+</html>
